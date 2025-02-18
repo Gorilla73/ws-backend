@@ -1,14 +1,8 @@
 import hashlib
-import os
 from abc import abstractmethod
-from datetime import datetime, date, timedelta
-
-from django.utils.timezone import make_aware
-from transliterate import translit
-
-from WolframScore import settings
+from datetime import datetime, timedelta, date
 from countries.models import Country
-from parsing.parserUtils import download_image, get_earlier_date
+from parsing.parserUtils import download_image
 
 
 class BaseAddMatchesToDB:
@@ -130,7 +124,7 @@ class BaseAddMatchesToDB:
         if image_championship_url:
             new_image = download_image(image_championship_url)
             if not championship.image_championship or not self._images_equal(championship.image_championship, new_image):
-                filename = f"championships/{championship.pk}.jpg"
+                filename = f"{championship.pk}.jpg"
                 self._save_image(championship.image_championship, filename, new_image)
 
         return championship
@@ -173,7 +167,7 @@ class BaseAddMatchesToDB:
             new_image = download_image(image_url)
             print(team)
             if not team.image or not self._images_equal(team.image, new_image):
-                filename = f"teams/{team.pk}.jpg"
+                filename = f"{team.pk}.jpg"
                 self._save_image(team.image, filename, new_image)
 
         return team
@@ -240,10 +234,8 @@ class BaseAddMatchesToDB:
 
         # Обработка даты начала
         start_date = coach_info.get("start_date")
-        if isinstance(start_date, str):
-            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()  # Приводим к datetime.date
-        elif isinstance(start_date, datetime):
-            start_date = start_date.date()  # Приводим к datetime.date
+        if not isinstance(start_date, date):
+            raise ValueError("Неподдерживаемый формат даты")
 
         # Получаем последнюю запись для команды
         last_coach_team = model_coach_team.objects.filter(
@@ -330,7 +322,7 @@ class BaseAddMatchesToDB:
         if image_referee_url:
             new_image = download_image(image_referee_url)
             if not self._images_equal(referee.image_referee, new_image):
-                filename = f"referees/{referee.pk}.jpg"
+                filename = f"{referee.pk}.jpg"
                 self._save_image(referee.image_referee, filename, new_image)
 
         return referee

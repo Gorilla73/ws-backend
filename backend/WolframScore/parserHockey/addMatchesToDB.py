@@ -43,13 +43,9 @@ class AddMatchesToDBHockey(BaseAddMatchesToDB, ABC):
 
         try:
             # region Обработка даты
-            raw_date = match_info["date"]
+            match_date = match_info["date"]
 
-            if isinstance(raw_date, datetime):
-                match_date = raw_date
-            elif isinstance(raw_date, str):
-                match_date = datetime.strptime(raw_date, "%Y-%m-%d %H:%M:%S")
-            else:
+            if not isinstance(match_date, datetime):
                 raise ValueError("Неподдерживаемый формат даты")
 
             if not timezone.is_aware(match_date):

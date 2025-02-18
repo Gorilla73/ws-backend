@@ -57,8 +57,12 @@ class ParserResultKHL(ParserKHL):
                 if status != "матч завершен":
                     continue
 
-                match_data = self.get_match_data(match_page_html, match_page_html_play_by_play, current_date)
-                matches.append(match_data)
+                championship = self.get_championship(match_page_html)
+                print(championship)
+
+                match_data = self.get_match_data(match_page_html, match_page_html_play_by_play, current_date, championship)
+                if match_data is not None:
+                    matches.append(match_data)
 
             current_date += timedelta(days=1)
 
@@ -96,23 +100,38 @@ class ParserResultKHL(ParserKHL):
         p_tag = soup.select_one('.preview-frame .preview-frame__center .preview-frame__center-text')
         return p_tag.get_text(strip=True)
 
-    def get_match_data(self, match_page_html, match_page_html_play_by_play, current_date):
-        match_info, original_team_names, coach_names = self.get_match_info(match_page_html, current_date)
+    @staticmethod
+    def get_championship(match_page_html):
+        soup = BeautifulSoup(match_page_html, 'html.parser')
+        preview_header_title = soup.find("h2", class_="preview-header__title").text.strip()
+        championship = preview_header_title.split(" / ")[0]
+        if championship == "КХЛ. Плей-офф":
+            return championship
+        else:
+            return "КХЛ"
+
+    def get_match_data(self, match_page_html, match_page_html_play_by_play, current_date, championship):
+        match_info, original_team_names, coach_names = self.get_match_info(match_page_html, current_date, championship)
         # match_statistic = get_default_initial_match_statistic()
         team_image_paths = {
             "home": match_info["home"]["image"],
             "away": match_info["away"]["image"]
         }
+
+        if (original_team_names["home_team"] in self._teams_black_list or
+                original_team_names["away_team"] in self._teams_black_list):
+            return None
+
         lineups = {
             "home": None,
             "away": None,
             "coach_home": {
                 "name": coach_names["home_team"],
-                "start_date": match_info["date"]
+                "start_date": match_info["date"].date()
             },
             "coach_away": {
                 "name": coach_names["away_team"],
-                "start_date": match_info["date"]
+                "start_date": match_info["date"].date()
             }
         }
         match_statistic = {
@@ -155,7 +174,7 @@ class ParserResultKHL(ParserKHL):
         }
         return result
 
-    def get_match_info(self, html_match_page, current_date):
+    def get_match_info(self, html_match_page, current_date, championship):
 
         soup = BeautifulSoup(html_match_page, 'html.parser')
         preview_frame = soup.find(class_='preview-frame__clubs')
@@ -198,7 +217,7 @@ class ParserResultKHL(ParserKHL):
                 "years": "2024/2025",
             },
             "championship": {
-                "name": "КХЛ",
+                "name": championship,
                 "country": "Россия"
             },
             "referee": None,
@@ -713,5 +732,5 @@ if __name__ == "__main__":
     # Пример вызова с датами
     # parser.parsing(start_date="2024-09-06", end_date="2025-01-05")
     # parser.parsing(start_date="2024-09-03", end_date="2024-09-30")
-    parser.parsing(start_date="2024-09-03", end_date="2025-02-16")
-    # parser.parsing(start_date="2025-01-31", end_date="2025-02-02")
+    parser.parsing(start_date="2024-09-03", end_date="2025-02-17")
+    # parser.parsing(start_date="2024-09-03", end_date="2024-09-05")

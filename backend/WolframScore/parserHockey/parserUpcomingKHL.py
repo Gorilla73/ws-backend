@@ -44,14 +44,23 @@ class ParserUpcomingKHL(ParserKHL):
     def get_matches_by_date(self, html_page_schedule_matches, current_date):
         matches = []
         soup = BeautifulSoup(html_page_schedule_matches, 'html.parser')
+        championship = self.get_championship(soup)
         matches_html = soup.find_all("div", class_=["card-game", "card-game--calendar"])
 
         for match_html in matches_html:
-            match_data = self.get_match_data(match_html, current_date)
-            matches.append(match_data)
+            match_data = self.get_match_data(match_html, current_date, championship)
+            if match_data is not None:
+                matches.append(match_data)
         return matches
 
-    def get_match_data(self, match_html, current_date):
+    def get_championship(self, soup):
+        type_season = soup.find("div", class_=["calendary-body__item-link"]).text.strip()
+        if type_season == "Регулярный чемпионат":
+            return "КХЛ"
+        else:
+            return "КХЛ. Плей-офф"
+
+    def get_match_data(self, match_html, current_date, championship):
         home_team = match_html.find("a", class_="card-game__club card-game__club_left")
         home_team_name = home_team.find("p", class_="card-game__club-name").text.strip()
         home_team_city = home_team.find("p", class_="card-game__club-local").text.strip()
@@ -64,6 +73,9 @@ class ParserUpcomingKHL(ParserKHL):
 
         time = self.get_time_match(match_html)
         match_date = self.format_date(current_date, time)
+
+        if home_team in self._teams_black_list or away_team in self._teams_black_list:
+            return None
 
         lineups = {
             "home": None,
@@ -83,7 +95,8 @@ class ParserUpcomingKHL(ParserKHL):
                     "image": None
                 },
                 "championship": {
-                    "name": "КХЛ"
+                    "name": championship,
+                    "county": "Россия"
                 },
                 "season": {
                     "years": "2024/2025",
@@ -131,4 +144,4 @@ if __name__ == "__main__":
 
     # Пример вызова с датами
     # Parser.parsing(start_date="2025-01-03", end_date="2025-01-10")
-    Parser.parsing(start_date="2025-02-17", end_date="2025-03-01")
+    Parser.parsing(start_date="2025-02-18", end_date="2025-03-23")

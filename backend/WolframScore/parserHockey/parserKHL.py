@@ -49,7 +49,6 @@ class ParserKHL:
         local_timezone = pytz.timezone("Europe/Moscow")
         local_datetime = datetime.strptime(local_datetime_str, "%Y-%m-%d %H:%M")
         local_datetime = local_timezone.localize(local_datetime)
-
         return local_datetime
 
     @staticmethod

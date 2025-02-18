@@ -25,19 +25,19 @@ def get_upload_path(instance, filename, folder_name):
 
 
 def get_upload_championship_path(instance, filename):
-    return get_upload_path(instance, filename, 'championships_images')
+    return get_upload_path(instance, filename, 'championships')
 
 
 def get_upload_team_path(instance, filename):
-    return get_upload_path(instance, filename, 'team_images')
+    return get_upload_path(instance, filename, 'teams')
 
 
 def get_upload_coach_path(instance, filename):
-    return get_upload_path(instance, filename, 'coaches_images')
+    return get_upload_path(instance, filename, 'coaches')
 
 
 def get_upload_referee_path(instance, filename):
-    return get_upload_path(instance, filename, 'referee_images')
+    return get_upload_path(instance, filename, 'referees')
 
 
 class BaseChampionship(models.Model):

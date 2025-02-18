@@ -7,29 +7,10 @@ import aspose.words as aw
 from django.core.files.base import ContentFile
 import time
 
-SITE_URL = "https://eventsstat.com"
-
 
 def format_seconds_to_minutes_and_seconds(seconds):
     minutes, seconds_remaining = divmod(seconds, 60)
     return f"{minutes:02}:{seconds_remaining:02}"
-
-
-def get_earlier_date(date1, date2):
-    """
-    Возвращает более раннюю дату из двух переданных.
-
-    :param date1: Первая дата в формате datetime или date.
-    :param date2: Вторая дата в формате datetime или date.
-    :return: True, если date1 более ранняя дата, чем date2, иначе False.
-    """
-    # Преобразуем datetime в date, если это необходимо
-    if isinstance(date1, datetime):
-        date1 = date1.date()
-    if isinstance(date2, datetime):
-        date2 = date2.date()
-
-    return date1 < date2
 
 
 def svg_to_jpg(svg_content):
@@ -55,6 +36,7 @@ def svg_to_jpg(svg_content):
     # Возвращаем изображение в формате JPEG в виде байтов
     jpg_data.seek(0)  # Устанавливаем указатель в начало
     return ContentFile(jpg_data.getvalue())
+
 
 def download_image(url, retries=3, delay=5):
     """
@@ -93,3 +75,4 @@ def download_image(url, retries=3, delay=5):
 
     print("Превышено количество попыток загрузки изображения.")
     return None
+
