@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from datetime import datetime
 
 import pytz
@@ -5,7 +6,7 @@ import pytz
 from parsing.requests import get_request
 
 
-class ParserNHL:
+class ParserNHL(ABC):
 
     def __init__(self, _calendar_url=None, _play_by_play_url=None, _game_center_url=None, _headers=None):
         self._calendar_url = _calendar_url
@@ -23,6 +24,17 @@ class ParserNHL:
         url = self._calendar_url + date
         response = get_request(url=url, params=None, headers=self._headers)
         return response
+
+    def get_matches_data_by_week(self, games):
+        matches_data = []
+        for game in games:
+            match_data = self.get_match_data(game)
+            matches_data.append(match_data)
+        return matches_data
+
+    @abstractmethod
+    def get_match_data(self, game):
+        raise NotImplementedError("Метод get_match_data должен быть переопределен в дочернем классе")
 
     def get_date(self, response_play_by_play):
         date_utc = response_play_by_play.get("startTimeUTC")

@@ -72,14 +72,6 @@ class ParserResultNHL(ParserNHL):
 
         return next_current_date, matches_id
 
-    # Надо вынести в родительский класс
-    def get_matches_data_by_week(self, matches_id):
-        matches_data = []
-        for match_id in matches_id:
-            match_data = self.get_match_data(match_id)
-            matches_data.append(match_data)
-        return matches_data
-
     def get_match_data(self, match_id):
         response_play_by_play = self.get_json_play_by_play(match_id)
         match_info = self.get_match_info(response_play_by_play)

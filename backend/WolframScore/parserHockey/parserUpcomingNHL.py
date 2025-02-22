@@ -67,14 +67,6 @@ class ParserUpcomingNHL(ParserNHL):
 
         return next_current_date, matches
 
-    # Надо вынести в родительский класс
-    def get_matches_data_by_week(self, games):
-        matches_data = []
-        for game in games:
-            match_data = self.get_match_data(game)
-            matches_data.append(match_data)
-        return matches_data
-
     def get_match_data(self, game):
         match_info = self.get_match_info(game)
         lineups = {
