@@ -1,3 +1,13 @@
+import os
+
+from parserHockey.parserNHL import ParserNHL
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "WolframScore.settings")
+
+import django
+
+django.setup()
+
 from datetime import datetime
 
 import pytz
@@ -10,14 +20,11 @@ from parserHockey.parserHockeyUtils import time_to_seconds
 from parsing.requests import get_request
 
 
-class ParserResultNHL:
+class ParserResultNHL(ParserNHL):
 
     def __init__(self, _calendar_url, _play_by_play_url, _game_center_url, _headers):
-        self.__calendar_url = _calendar_url
-        self.__play_by_play_url = _play_by_play_url
-        self.__game_center_url = _game_center_url
-
-        self.__headers = _headers
+        super().__init__(_calendar_url=_calendar_url, _play_by_play_url=_play_by_play_url,
+                         _game_center_url=_game_center_url, _headers=_headers)
 
     def parsing(self, start_date, end_date):
         start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
@@ -65,11 +72,7 @@ class ParserResultNHL:
 
         return next_current_date, matches_id
 
-    def get_json_response_by_date(self, date):
-        url = self.__calendar_url + date
-        response = get_request(url=url, params=None, headers=self.__headers)
-        return response
-
+    # Надо вынести в родительский класс
     def get_matches_data_by_week(self, matches_id):
         matches_data = []
         for match_id in matches_id:
@@ -87,11 +90,11 @@ class ParserResultNHL:
             "away": None,
             "coach_home": {
                 "name": coaches["home"]["name"],
-                "start_date": match_info["date"]
+                "start_date": match_info["date"].date()
             },
             "coach_away": {
                 "name": coaches["away"]["name"],
-                "start_date": match_info["date"]
+                "start_date": match_info["date"].date()
             }
         }
         result = {
@@ -106,14 +109,15 @@ class ParserResultNHL:
         return result
 
     def get_json_play_by_play(self, match_id):
-        url = f"{self.__play_by_play_url}{match_id}/play-by-play"
-        response = get_request(url=url, params=None, headers=self.__headers)
+        url = f"{self._play_by_play_url}{match_id}/play-by-play"
+        response = get_request(url=url, params=None, headers=self._headers)
         return response
 
     def get_match_info(self, response_play_by_play):
         date = self.get_date(response_play_by_play)
         teams = self.get_teams_info(response_play_by_play)
         season = self.get_season(response_play_by_play)
+        game_type = response_play_by_play.get("gameType")
 
         print(teams["home"]["name"], teams["away"]["name"], date)
         method_end_match, match_result = self.get_method_end_match_and_result(response_play_by_play)
@@ -131,7 +135,7 @@ class ParserResultNHL:
                 "years": season,
             },
             "championship": {
-                "name": "НХЛ",
+                "name": self._game_type_to_championship_name[game_type],
                 "country": "США"
             },
             "referee": None,
@@ -359,47 +363,6 @@ class ParserResultNHL:
 
         return match_statistic
 
-    def get_date(self, response_play_by_play):
-        date_utc = response_play_by_play.get("startTimeUTC")
-        date = self.format_date(date_utc)
-        return date
-
-    def format_date(self, date_str):
-        # Преобразуем строку в datetime, указывая, что время в UTC
-        utc_datetime = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=pytz.utc)
-
-        # Переводим время в московскую временную зону
-        moscow_timezone = pytz.timezone("Europe/Moscow")
-        moscow_datetime = utc_datetime.astimezone(moscow_timezone)
-
-        return moscow_datetime
-
-    def get_teams_info(self, response_play_by_play):
-        teams = {
-            "home": {},
-            "away": {}
-        }
-
-        place_home_team = response_play_by_play.get("homeTeam").get("placeName").get("default")
-        name_home_team = response_play_by_play.get("homeTeam").get("commonName").get("default")
-
-        # teams["home"]["name"] = f"{place_home_team} {name_home_team}"
-        teams["home"]["name"] = name_home_team
-        teams["home"]["image"] = response_play_by_play.get("homeTeam").get("logo")
-
-        place_away_team = response_play_by_play.get("awayTeam").get("placeName").get("default")
-        name_away_team = response_play_by_play.get("awayTeam").get("commonName").get("default")
-        # teams["away"]["name"] = f"{place_away_team} {name_away_team}"
-        teams["away"]["name"] = name_away_team
-        teams["away"]["image"] = response_play_by_play.get("awayTeam").get("logo")
-
-        return teams
-
-    def get_season(self, response_play_by_play):
-        season = str(response_play_by_play.get("season"))
-        format_season = f"{season[:4]}/{season[4:]}"
-        return format_season
-
     def get_method_end_match_and_result(self, response_play_by_play):
         translate_method_end_match = {
             "REG": "MT",
@@ -488,8 +451,8 @@ class ParserResultNHL:
         return coaches
 
     def get_json_right_rail(self, match_id):
-        url = f"{self.__game_center_url}{match_id}/right-rail"
-        response = get_request(url=url, params=None, headers=self.__headers)
+        url = f"{self._game_center_url}{match_id}/right-rail"
+        response = get_request(url=url, params=None, headers=self._headers)
         return response
 
 
@@ -516,4 +479,5 @@ if __name__ == "__main__":
                              _game_center_url=game_center_url, _headers=headers)
     # Parser.parsing(start_date="2024-09-30", end_date="2025-02-02")
     # Parser.parsing(start_date="2024-09-30", end_date="2025-01-03")
-    Parser.parsing(start_date="2025-02-10", end_date="2025-02-12")
+    # Parser.parsing(start_date="2024-02-10", end_date="2025-02-22")
+    Parser.parsing(start_date="2024-02-10", end_date="2025-02-22")

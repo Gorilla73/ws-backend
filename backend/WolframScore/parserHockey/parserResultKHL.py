@@ -732,5 +732,5 @@ if __name__ == "__main__":
     # Пример вызова с датами
     # parser.parsing(start_date="2024-09-06", end_date="2025-01-05")
     # parser.parsing(start_date="2024-09-03", end_date="2024-09-30")
-    parser.parsing(start_date="2024-09-03", end_date="2025-02-17")
-    # parser.parsing(start_date="2024-09-03", end_date="2024-09-05")
+    # parser.parsing(start_date="2024-09-03", end_date="2025-02-17")
+    parser.parsing(start_date="2025-02-19", end_date="2025-02-21")

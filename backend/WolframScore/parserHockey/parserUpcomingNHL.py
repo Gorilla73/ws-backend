@@ -1,3 +1,13 @@
+import os
+
+from parserHockey.parserNHL import ParserNHL
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "WolframScore.settings")
+
+import django
+
+django.setup()
+
 from datetime import datetime
 
 import pytz
@@ -7,12 +17,10 @@ from parserHockey.dictionary_models import models_hockey
 from parsing.requests import get_request
 
 
-class ParserUpcomingNHL:
+class ParserUpcomingNHL(ParserNHL):
 
     def __init__(self, _calendar_url, _headers):
-        self.__calendar_url = _calendar_url
-
-        self.__headers = _headers
+        super().__init__(_calendar_url=_calendar_url, _headers=_headers)
 
     def parsing(self, start_date, end_date):
         start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
@@ -59,11 +67,7 @@ class ParserUpcomingNHL:
 
         return next_current_date, matches
 
-    def get_json_response_by_date(self, date):
-        url = self.__calendar_url + date
-        response = get_request(url=url, params=None, headers=self.__headers)
-        return response
-
+    # Надо вынести в родительский класс
     def get_matches_data_by_week(self, games):
         matches_data = []
         for game in games:
@@ -94,6 +98,7 @@ class ParserUpcomingNHL:
         date = self.get_date(response_play_by_play)
         teams = self.get_teams_info(response_play_by_play)
         season = self.get_season(response_play_by_play)
+        game_type = response_play_by_play.get("gameType")
 
         print(teams["home"]["name"], teams["away"]["name"], date)
 
@@ -110,7 +115,7 @@ class ParserUpcomingNHL:
                 "years": season,
             },
             "championship": {
-                "name": "НХЛ",
+                "name": self._game_type_to_championship_name[game_type],
                 "country": "США"
             },
             "referee": None,
@@ -124,46 +129,6 @@ class ParserUpcomingNHL:
 
         return match_info
 
-    def get_date(self, response_play_by_play):
-        date_utc = response_play_by_play.get("startTimeUTC")
-        date = self.format_date(date_utc)
-        return date
-
-    def format_date(self, date_str):
-        # Преобразуем строку в datetime, указывая, что время в UTC
-        utc_datetime = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=pytz.utc)
-
-        # Переводим время в московскую временную зону
-        moscow_timezone = pytz.timezone("Europe/Moscow")
-        moscow_datetime = utc_datetime.astimezone(moscow_timezone)
-
-        return moscow_datetime
-
-    def get_teams_info(self, response_play_by_play):
-        teams = {
-            "home": {},
-            "away": {}
-        }
-
-        place_home_team = response_play_by_play.get("homeTeam").get("placeName").get("default")
-        name_home_team = response_play_by_play.get("homeTeam").get("commonName").get("default")
-
-        # teams["home"]["name"] = f"{place_home_team} {name_home_team}"
-        teams["home"]["name"] = name_home_team
-        teams["home"]["image"] = response_play_by_play.get("homeTeam").get("logo")
-
-        place_away_team = response_play_by_play.get("awayTeam").get("placeName").get("default")
-        name_away_team = response_play_by_play.get("awayTeam").get("commonName").get("default")
-        # teams["away"]["name"] = f"{place_away_team} {name_away_team}"
-        teams["away"]["name"] = name_away_team
-        teams["away"]["image"] = response_play_by_play.get("awayTeam").get("logo")
-
-        return teams
-
-    def get_season(self, response_play_by_play):
-        season = str(response_play_by_play.get("season"))
-        format_season = f"{season[:4]}/{season[4:]}"
-        return format_season
 
 if __name__ == "__main__":
     headers = {
@@ -186,5 +151,5 @@ if __name__ == "__main__":
     game_center_url = "https://api-web.nhle.com/v1/gamecenter/"
     Parser = ParserUpcomingNHL(_calendar_url=calendar_url, _headers=headers)
     # Parser.parsing(start_date="2024-09-30", end_date="2024-10-12")
-    Parser.parsing(start_date="2025-02-03", end_date="2025-03-01")
+    Parser.parsing(start_date="2025-02-22", end_date="2025-03-27")
     # Parser.parsing(start_date="2024-09-30", end_date="2024-10-03")
