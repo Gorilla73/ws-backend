@@ -371,8 +371,9 @@ class GetChampionshipInfoView(APIView):
         championshipInfo = {
             "id": championship.pk,
             "name": championship.name,
-            "image": request.build_absolute_uri(
-                championship.image_country.url) if championship.image_country else None,
+            "image": None,
+                # request.build_absolute_uri(
+                # championship.image.url) if championship.image else None,
             "averageTotalGoals": 5.43,
             "averageTotalShotsOnGoal": 58.7,
             "averageTotalMinorPenalties": 4.67,

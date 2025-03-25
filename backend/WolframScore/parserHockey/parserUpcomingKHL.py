@@ -36,7 +36,6 @@ class ParserUpcomingKHL(ParserKHL):
             current_date += timedelta(days=1)
 
             matches.extend(matches_by_date)
-
         add_matches_obj = AddMatchesToDBHockey(
             _models=models_hockey, _dictionary_championships_with_matches={"КХЛ": matches})
         add_matches_obj.add_championships_with_matches_to_db()
@@ -44,7 +43,10 @@ class ParserUpcomingKHL(ParserKHL):
     def get_matches_by_date(self, html_page_schedule_matches, current_date):
         matches = []
         soup = BeautifulSoup(html_page_schedule_matches, 'html.parser')
+        if not(soup.find("div", class_=["card-game", "card-game--calendar"])):
+            return []
         championship = self.get_championship(soup)
+        print(championship)
         matches_html = soup.find_all("div", class_=["card-game", "card-game--calendar"])
 
         for match_html in matches_html:
@@ -139,9 +141,10 @@ if __name__ == "__main__":
     }
     url_calendar = "https://www.khl.ru/calendar/"
 
-    season_id = "1288"
+    #season_id = "1288" # Регулярный чемпионат 2024/2025
+    season_id = "1289" # Плей-офф 2024/2025
     Parser = ParserUpcomingKHL(headers, url_calendar, season_id)
 
     # Пример вызова с датами
     # Parser.parsing(start_date="2025-01-03", end_date="2025-01-10")
-    Parser.parsing(start_date="2025-02-18", end_date="2025-03-23")
+    Parser.parsing(start_date="2025-03-26", end_date="2025-04-10")

@@ -1,8 +1,10 @@
 from sqlite3 import IntegrityError
 
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.utils.translation import gettext_lazy as _
+
 from .validators import validate_password
 
 from userApi.models import CustomUser
@@ -17,6 +19,23 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
 
         return token
+
+    def validate(self, attrs):
+        try:
+            # Пытаемся выполнить стандартную валидацию
+            data = super().validate(attrs)
+        except exceptions.AuthenticationFailed:
+            # Если аутентификация не удалась, возвращаем ошибку на русском
+            raise exceptions.AuthenticationFailed(
+                _('Неверный логин или пароль.')
+            )
+        except exceptions.ValidationError:
+            # Если данные не прошли валидацию, возвращаем ошибку на русском
+            raise exceptions.ValidationError(
+                _('Пожалуйста, введите корректные данные.')
+            )
+
+        return data
 
 
 class RegisterSerializer(serializers.ModelSerializer):

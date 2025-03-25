@@ -472,4 +472,4 @@ if __name__ == "__main__":
     # Parser.parsing(start_date="2024-09-30", end_date="2025-02-02")
     # Parser.parsing(start_date="2024-09-30", end_date="2025-01-03")
     # Parser.parsing(start_date="2024-02-10", end_date="2025-02-22")
-    Parser.parsing(start_date="2024-02-10", end_date="2025-02-22")
+    Parser.parsing(start_date="2025-03-24", end_date="2025-03-25")

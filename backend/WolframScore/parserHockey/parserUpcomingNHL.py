@@ -143,5 +143,5 @@ if __name__ == "__main__":
     game_center_url = "https://api-web.nhle.com/v1/gamecenter/"
     Parser = ParserUpcomingNHL(_calendar_url=calendar_url, _headers=headers)
     # Parser.parsing(start_date="2024-09-30", end_date="2024-10-12")
-    Parser.parsing(start_date="2025-02-22", end_date="2025-03-27")
+    Parser.parsing(start_date="2025-03-12", end_date="2025-03-16")
     # Parser.parsing(start_date="2024-09-30", end_date="2024-10-03")
